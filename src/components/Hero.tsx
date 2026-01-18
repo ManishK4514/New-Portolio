@@ -2,10 +2,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Mail, Github, Linkedin, Terminal, Database, Server, Cloud } from 'lucide-react';
 import profileImage from '@/assets/profile.png';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useProfile } from '@/hooks/usePortfolioData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Hero = () => {
   const content = useScrollReveal({ delay: 0 });
   const profileImg = useScrollReveal({ delay: 300 });
+  const { data: profile, isLoading } = useProfile();
 
   const scrollToProjects = () => {
     document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
@@ -15,16 +18,19 @@ const Hero = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const techStack = [
-    { name: 'Java', color: 'from-orange-500 to-red-500' },
-    { name: 'Spring Boot', color: 'from-green-500 to-emerald-500' },
-    { name: 'Node.js', color: 'from-green-400 to-green-600' },
-    { name: 'React', color: 'from-blue-400 to-blue-600' },
-    { name: 'AWS', color: 'from-yellow-500 to-orange-500' },
-    { name: 'PostgreSQL', color: 'from-blue-500 to-cyan-500' },
-    { name: 'Redis', color: 'from-red-500 to-red-400' },
-    { name: 'Microservices', color: 'from-purple-500 to-indigo-500' },
-  ];
+  // Fallback data
+  const defaultProfile = {
+    full_name: "Manish Kumar",
+    headline: "Full-Stack Engineer | Payment Systems Architect",
+    bio: "Specializing in building scalable payment systems and loyalty platforms for fintech companies. Proven track record of delivering high-performance solutions.",
+    social_links: {
+      github: "https://github.com/ManishK4514",
+      linkedin: "https://linkedin.com/in/manishk4514",
+      email: "manish80842@gmail.com"
+    }
+  };
+
+  const displayProfile = profile || defaultProfile;
 
   return (
     <section id="home" className="relative min-h-[100dvh] flex flex-col justify-center overflow-x-hidden pb-20 lg:pb-0">
@@ -67,18 +73,32 @@ const Hero = () => {
               {/* Name and Title */}
               <div className="space-y-2">
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-                  <span className="block text-foreground">Manish Kumar</span>
+                  {isLoading ? (
+                    <Skeleton className="h-12 w-3/4" />
+                  ) : (
+                    <span className="block text-foreground">{displayProfile.full_name}</span>
+                  )}
                 </h1>
-                <p className="text-base md:text-lg lg:text-xl font-semibold bg-gradient-to-r from-primary via-secondary to-[hsl(14,100%,60%)] bg-clip-text text-transparent">
-                  Full-Stack Engineer | Payment Systems Architect
-                </p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-full" />
+                ) : (
+                  <p className="text-base md:text-lg lg:text-xl font-semibold bg-gradient-to-r from-primary via-secondary to-[hsl(14,100%,60%)] bg-clip-text text-transparent">
+                    {displayProfile.headline}
+                  </p>
+                )}
               </div>
 
               {/* Summary */}
-              <p className="text-sm text-foreground/80 leading-relaxed max-w-lg">
-                Specializing in building scalable payment systems and loyalty platforms for fintech companies. 
-                Proven track record of delivering high-performance solutions.
-              </p>
+              {isLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/80 leading-relaxed max-w-lg">
+                  {displayProfile.bio}
+                </p>
+              )}
 
               {/* Key Metrics Grid */}
               <div className="grid grid-cols-2 gap-2.5 max-w-sm">
@@ -125,25 +145,31 @@ const Hero = () => {
 
               {/* Social links */}
               <div className="flex items-center gap-3 pt-1">
-                <a 
-                  href="https://github.com/ManishK4514" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="group p-2 rounded-lg bg-card/50 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                >
-                  <Github className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                </a>
-                <a 
-                  href="https://linkedin.com/in/manishk4514" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="group p-2 rounded-lg bg-card/50 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                >
-                  <Linkedin className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                </a>
-                <span className="text-xs text-muted-foreground font-medium px-2">
-                  manish80842@gmail.com
-                </span>
+                {displayProfile.social_links?.github && (
+                  <a 
+                    href={displayProfile.social_links.github} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group p-2 rounded-lg bg-card/50 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                  >
+                    <Github className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </a>
+                )}
+                {displayProfile.social_links?.linkedin && (
+                  <a 
+                    href={displayProfile.social_links.linkedin} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="group p-2 rounded-lg bg-card/50 border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                  >
+                    <Linkedin className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </a>
+                )}
+                {displayProfile.social_links?.email && (
+                  <span className="text-xs text-muted-foreground font-medium px-2">
+                    {displayProfile.social_links.email}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -175,7 +201,7 @@ const Hero = () => {
                     <div className="relative w-full aspect-square rounded-xl overflow-hidden border-2 border-border mb-3 group">
                       <img 
                         src={profileImage} 
-                        alt="Manish Kumar - Full-Stack Engineer" 
+                        alt={displayProfile.full_name} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
@@ -224,24 +250,6 @@ const Hero = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Tech Stack */}
-              {/* <div className="space-y-2 lg:ml-auto max-w-sm">
-                <h3 className="text-[10px] font-semibold text-muted-foreground">Tech Stack</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {techStack.map((tech) => (
-                    <span
-                      key={tech.name}
-                      className="group relative px-2 py-0.5 text-[10px] font-medium rounded-md bg-card border border-border hover:border-primary/50 transition-all duration-300 cursor-default overflow-hidden"
-                    >
-                      <span className={`absolute inset-0 bg-gradient-to-r ${tech.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                      <span className="relative text-muted-foreground group-hover:text-foreground transition-colors">
-                        {tech.name}
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              </div> */}
             </div>
           </div>
         </div>

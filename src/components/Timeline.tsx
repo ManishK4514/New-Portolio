@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Briefcase, GraduationCap, Circle } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useExperience } from '@/hooks/usePortfolioData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TimelineItem {
-  id: number;
+  id: number | string;
   type: 'work' | 'education';
   title: string;
   organization: string;
@@ -11,7 +13,7 @@ interface TimelineItem {
   description: string[];
 }
 
-const timelineData: TimelineItem[] = [
+const defaultTimelineData: TimelineItem[] = [
   {
     id: 1,
     type: 'work',
@@ -77,12 +79,117 @@ const timelineData: TimelineItem[] = [
   },
 ];
 
+const TimelineItemCard = ({ 
+  item, 
+  index, 
+  isActive 
+}: { 
+  item: TimelineItem; 
+  index: number; 
+  isActive: boolean; 
+}) => {
+  const itemReveal = useScrollReveal({ delay: index * 100 });
+  const animationClass = index % 2 === 0 ? 'reveal-slide-left' : 'reveal-slide-right';
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState('');
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 20;
+    const rotateY = (centerX - x) / 20;
+    setTransform(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`);
+  };
+
+  const handleMouseLeave = () => {
+    setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
+  };
+
+  return (
+    <div
+      ref={(el) => {
+        if (el && !itemReveal.ref.current) {
+          (itemReveal.ref as any).current = el;
+        }
+      }}
+      className={`relative flex items-center justify-end ${
+        index % 2 === 0 ? 'md:justify-start' : 'md:justify-end'
+      } reveal ${itemReveal.isVisible ? `active ${animationClass}` : ''}`}
+    >
+      <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${index % 2 === 0 ? 'md:pr-8' : 'md:pl-8'}`}>
+        <div 
+          ref={cardRef}
+          className={`bg-card border border-border rounded-xl p-6 transition-all duration-300 ease-in-out group ${
+            isActive 
+              ? 'border-primary shadow-lg shadow-primary/20' 
+              : 'hover:border-primary/50'
+          }`}
+          style={{ transform, transition: 'transform 0.1s ease-out' }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            {item.type === 'work' ? (
+              <Briefcase className={`w-5 h-5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            ) : (
+              <GraduationCap className={`w-5 h-5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            )}
+            <span className={`text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+              {item.period}
+            </span>
+          </div>
+          
+          <h3 className={`text-xl font-bold mb-2 transition-colors ${
+            isActive ? 'text-foreground' : 'text-foreground group-hover:text-primary'
+          }`}>
+            {item.title}
+          </h3>
+          <p className="text-muted-foreground font-medium mb-4">{item.organization}</p>
+          
+          <ul className="space-y-2">
+            {item.description.map((point, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <Circle className="w-2 h-2 mt-1.5 fill-primary text-primary flex-shrink-0" />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className={`absolute left-8 md:left-1/2 transform -translate-x-1/2 rounded-full transition-all duration-500 z-10 ${
+        isActive
+          ? 'w-6 h-6 bg-primary shadow-lg shadow-primary/50'
+          : 'w-4 h-4 bg-primary/50'
+      }`} />
+    </div>
+  );
+};
+
 const Timeline = () => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [lineHeight, setLineHeight] = useState(0);
   const [activeItems, setActiveItems] = useState<number[]>([]);
+  
+  const { data: experienceData, isLoading } = useExperience();
+
+  const displayTimeline: TimelineItem[] = experienceData && experienceData.length > 0
+    ? experienceData.map((item: any) => ({
+        id: item.id,
+        type: item.type as 'work' | 'education',
+        title: item.role,
+        organization: item.company,
+        period: item.duration,
+        description: item.description ? item.description.split('\n') : []
+      }))
+    : defaultTimelineData;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -102,26 +209,29 @@ const Timeline = () => {
 
       // Check which items should be highlighted
       const newActiveItems: number[] = [];
-      itemRefs.current.forEach((item, index) => {
-        if (item) {
+      // We need to query the DOM elements directly since refs might not be fully populated in the same way with the component split
+      // However, we can still use the ref callback approach if we pass it down, but simpler is to query by class or ID
+      // Or better, just rely on the fact that we render them in order.
+      // Let's use a slightly different approach for active items detection to be robust
+      const items = timelineRef.current.querySelectorAll('.reveal');
+      items.forEach((item, index) => {
           const itemTop = item.getBoundingClientRect().top;
-          const itemCenter = itemTop + (item.offsetHeight / 2);
+          const itemCenter = itemTop + ((item as HTMLElement).offsetHeight / 2);
           
-          // If the center of the item is above the middle of the viewport, highlight it
           if (itemCenter < windowHeight * 0.6) {
             newActiveItems.push(index);
           }
-        }
       });
       
       setActiveItems(newActiveItems);
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Initial call
+    // Delay initial check to ensure DOM is ready
+    setTimeout(handleScroll, 100);
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [displayTimeline]); // Re-run effect when data changes
 
   const heading = useScrollReveal();
 
@@ -151,91 +261,34 @@ const Timeline = () => {
           />
 
           <div className="space-y-12">
-            {timelineData.map((item, index) => {
-              const itemReveal = useScrollReveal({ delay: index * 100 });
-              const animationClass = index % 2 === 0 ? 'reveal-slide-left' : 'reveal-slide-right';
-              const cardRef = useRef<HTMLDivElement>(null);
-              const [transform, setTransform] = useState('');
-
-              const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-                if (!cardRef.current) return;
-                const card = cardRef.current;
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = (y - centerY) / 20;
-                const rotateY = (centerX - x) / 20;
-                setTransform(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`);
-              };
-
-              const handleMouseLeave = () => {
-                setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
-              };
-              
-              return (
-                <div
-                  key={item.id}
-                  ref={(el) => {
-                    itemRefs.current[index] = el;
-                    if (el && !itemReveal.ref.current) {
-                      (itemReveal.ref as any).current = el;
-                    }
-                  }}
-                  className={`relative flex items-center justify-end ${
-                    index % 2 === 0 ? 'md:justify-start' : 'md:justify-end'
-                  } reveal ${itemReveal.isVisible ? `active ${animationClass}` : ''}`}
-                >
-                  <div className={`w-full md:w-5/12 pl-16 md:pl-0 ${index % 2 === 0 ? 'md:pr-8' : 'md:pl-8'}`}>
-                  <div 
-                    ref={cardRef}
-                    className={`bg-card border border-border rounded-xl p-6 transition-all duration-300 ease-in-out group ${
-                      activeItems.includes(index) 
-                        ? 'border-primary shadow-lg shadow-primary/20' 
-                        : 'hover:border-primary/50'
-                    }`}
-                    style={{ transform, transition: 'transform 0.1s ease-out' }}
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      {item.type === 'work' ? (
-                        <Briefcase className={`w-5 h-5 transition-colors ${activeItems.includes(index) ? 'text-primary' : 'text-muted-foreground'}`} />
-                      ) : (
-                        <GraduationCap className={`w-5 h-5 transition-colors ${activeItems.includes(index) ? 'text-primary' : 'text-muted-foreground'}`} />
-                      )}
-                      <span className={`text-sm font-medium transition-colors ${activeItems.includes(index) ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {item.period}
-                      </span>
+            {isLoading ? (
+               // Loading Skeletons
+               [1, 2, 3].map((i) => (
+                <div key={i} className="relative flex items-center justify-end md:justify-start">
+                  <div className="w-full md:w-5/12 pl-16 md:pl-0 md:pr-8">
+                    <div className="bg-card border border-border rounded-xl p-6">
+                      <Skeleton className="h-6 w-1/3 mb-4" />
+                      <Skeleton className="h-8 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2 mb-4" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
                     </div>
-                    
-                    <h3 className={`text-xl font-bold mb-2 transition-colors ${
-                      activeItems.includes(index) ? 'text-foreground' : 'text-foreground group-hover:text-primary'
-                    }`}>
-                      {item.title}
-                    </h3>
-                    <p className="text-muted-foreground font-medium mb-4">{item.organization}</p>
-                    
-                    <ul className="space-y-2">
-                      {item.description.map((point, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <Circle className="w-2 h-2 mt-1.5 fill-primary text-primary flex-shrink-0" />
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
                 </div>
-
-                <div className={`absolute left-8 md:left-1/2 transform -translate-x-1/2 rounded-full transition-all duration-500 z-10 ${
-                  activeItems.includes(index)
-                    ? 'w-6 h-6 bg-primary shadow-lg shadow-primary/50'
-                    : 'w-4 h-4 bg-primary/50'
-                }`} />
-                </div>
-              );
-            })}
+               ))
+            ) : (
+              displayTimeline.map((item, index) => (
+                <TimelineItemCard 
+                  key={item.id} 
+                  item={item} 
+                  index={index} 
+                  isActive={activeItems.includes(index)} 
+                />
+              ))
+            )}
           </div>
         </div>
       </div>

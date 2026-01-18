@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { Code2, Database, Cloud, Layers, Palette, Terminal, Globe, Server } from 'lucide-react';
+import { useSkills } from '@/hooks/usePortfolioData';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Code2, Database, Cloud, Layers, Palette, Terminal, Globe, Server, Box } from 'lucide-react';
 import { 
   FaJava, FaReact, FaNodeJs, FaAws, FaDocker, FaGitAlt, FaGithub, FaHtml5, FaCss3Alt 
 } from 'react-icons/fa';
@@ -24,7 +26,47 @@ interface SkillCategory {
   skills: Skill[];
 }
 
-const categories: SkillCategory[] = [
+// Configuration for mapping skill names to icons and colors
+const skillConfig: Record<string, { icon: React.ElementType, color: string }> = {
+  'Java': { icon: FaJava, color: '#f89820' },
+  'JavaScript': { icon: SiJavascript, color: '#f7df1e' },
+  'TypeScript': { icon: SiTypescript, color: '#3178c6' },
+  'React.js': { icon: FaReact, color: '#61dafb' },
+  'Next.js': { icon: SiNextdotjs, color: '#000000' },
+  'Redux': { icon: SiRedux, color: '#764abc' },
+  'Tailwind': { icon: SiTailwindcss, color: '#06b6d4' },
+  'HTML5': { icon: FaHtml5, color: '#e34f26' },
+  'CSS3': { icon: FaCss3Alt, color: '#1572b6' },
+  'Node.js': { icon: FaNodeJs, color: '#339933' },
+  'Express': { icon: SiExpress, color: '#000000' },
+  'NestJS': { icon: SiNestjs, color: '#e0234e' },
+  'Spring Boot': { icon: SiSpringboot, color: '#6db33f' },
+  'Hibernate': { icon: SiHibernate, color: '#59666c' },
+  'PostgreSQL': { icon: SiPostgresql, color: '#4169e1' },
+  'MongoDB': { icon: SiMongodb, color: '#47a248' },
+  'Redis': { icon: SiRedis, color: '#dc382d' },
+  'AWS': { icon: FaAws, color: '#ff9900' },
+  'Docker': { icon: FaDocker, color: '#2496ed' },
+  'Jenkins': { icon: SiJenkins, color: '#d24939' },
+  'GraphQL': { icon: SiGraphql, color: '#e10098' },
+  'Git': { icon: FaGitAlt, color: '#f05032' },
+  'GitHub': { icon: FaGithub, color: '#181717' },
+  'Postman': { icon: SiPostman, color: '#ff6c37' },
+  'Prisma': { icon: SiPrisma, color: '#2d3748' },
+  'TypeORM': { icon: SiTypeorm, color: '#fe0803' },
+};
+
+const categoryConfig: Record<string, { icon: React.ReactNode, color: string }> = {
+  'Languages': { icon: <Code2 className="w-8 h-8" />, color: 'hsl(14 100% 60%)' },
+  'Frontend': { icon: <Palette className="w-8 h-8" />, color: 'hsl(171 100% 36%)' },
+  'Backend': { icon: <Server className="w-8 h-8" />, color: 'hsl(199 100% 50%)' },
+  'Databases': { icon: <Database className="w-8 h-8" />, color: 'hsl(270 61% 65%)' },
+  'Cloud & DevOps': { icon: <Cloud className="w-8 h-8" />, color: 'hsl(199 100% 50%)' },
+  'APIs & Integration': { icon: <Globe className="w-8 h-8" />, color: 'hsl(14 100% 60%)' },
+  'Tools': { icon: <Terminal className="w-8 h-8" />, color: 'hsl(171 100% 36%)' },
+};
+
+const defaultCategories: SkillCategory[] = [
   {
     title: 'Languages',
     icon: <Code2 className="w-8 h-8" />,
@@ -185,6 +227,21 @@ const SkillCategoryCard = ({ category, index }: { category: SkillCategory; index
 
 const Skills = () => {
   const heading = useScrollReveal();
+  const { data: skillsData, isLoading } = useSkills();
+
+  const displayCategories: SkillCategory[] = skillsData && skillsData.length > 0
+    ? skillsData.map((categoryData: any) => ({
+        title: categoryData.category,
+        icon: categoryConfig[categoryData.category]?.icon || <Box className="w-8 h-8" />,
+        color: categoryConfig[categoryData.category]?.color || 'hsl(210 100% 50%)',
+        skills: (categoryData.items || []).map((skillName: string) => ({
+          name: skillName,
+          icon: skillConfig[skillName]?.icon || Box,
+          color: skillConfig[skillName]?.color || '#888888'
+        }))
+      }))
+    : defaultCategories;
+
   return (
     <section id="skills" className="py-24 px-4 relative overflow-hidden">
       {/* Background Elements */}
@@ -198,11 +255,33 @@ const Skills = () => {
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Technical Skills</h2>
           <p className="text-lg md:text-xl text-muted-foreground">Technologies and tools I work with</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {categories.map((category, index) => (
-            <SkillCategoryCard key={category.title} category={category} index={index} />
-          ))}
-        </div>
+        
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-card rounded-2xl p-6 h-64 border border-border">
+                <div className="flex items-center gap-3 mb-6">
+                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((j) => (
+                    <div key={j} className="flex flex-col items-center gap-2">
+                      <Skeleton className="w-12 h-12 rounded-xl" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {displayCategories.map((category, index) => (
+              <SkillCategoryCard key={category.title} category={category} index={index} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

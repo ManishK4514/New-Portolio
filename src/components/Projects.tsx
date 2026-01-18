@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { ExternalLink, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useProjects } from '@/hooks/usePortfolioData';
+import { Skeleton } from '@/components/ui/skeleton';
 import socialCircle from '@/assets/social-circle.png';
 import socializespot from '@/assets/socializespot.png';
 import filmfliker from '@/assets/filmfliker.png';
@@ -10,7 +12,7 @@ import portfolio from '@/assets/portfolio.png';
 import disneyClone from '@/assets/disney-clone.png';
 
 interface Project {
-  id: number;
+  id: number | string;
   title: string;
   points: string[];
   tech: string[];
@@ -19,7 +21,7 @@ interface Project {
   githubUrl: string;
 }
 
-const projects: Project[] = [
+const defaultProjects: Project[] = [
   {
     id: 1,
     title: "SocialCircle – Social Media Platform",
@@ -140,6 +142,10 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
             src={project.image} 
             alt={project.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = portfolio; // Fallback to portfolio image on error
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         </div>
@@ -238,6 +244,19 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
 
 const Projects = () => {
   const heading = useScrollReveal();
+  const { data: projects, isLoading } = useProjects();
+
+  const displayProjects = projects && projects.length > 0 
+    ? projects.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        points: p.description ? [p.description] : [], // Mapping description to points
+        tech: p.tech_stack || [],
+        image: p.image_url || portfolio, // Fallback image if missing
+        liveUrl: p.live_url,
+        githubUrl: p.github_url
+      }))
+    : defaultProjects;
 
   return (
     <section id="projects" className="py-24 px-4 relative">
@@ -250,11 +269,24 @@ const Projects = () => {
           <p className="text-lg md:text-xl text-muted-foreground">Real-world applications and solutions</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {projects.map((project, index) => (
-            <ProjectCard key={project.id} project={project} index={index} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-card rounded-xl overflow-hidden border border-border h-96">
+                <Skeleton className="h-72 w-full" />
+                <div className="p-4">
+                  <Skeleton className="h-6 w-3/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {displayProjects.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
