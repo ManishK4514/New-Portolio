@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Mail, MapPin, Phone, Download, Github, Linkedin, Twitter, Sparkles, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import emailjs from 'emailjs-com';
 
 const Contact = () => {
+  const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -17,11 +19,25 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    if (!formRef.current) return;
+
+    emailjs.sendForm(
+      "service_ty1p9d9",
+      "template_tiwuosb",
+      formRef.current,
+      "ciAKGsIV-L5ilNSpY"
+    )
+    .then((result) => {
+      console.log(result.text);
       toast({ title: "Message Sent!", description: "Thanks! I'll get back to you soon." });
       setFormData({ name: '', email: '', message: '' });
       setIsSubmitting(false);
-    }, 1000);
+    }, (error) => {
+      console.log(error.text);
+      toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+      setIsSubmitting(false);
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -172,7 +188,7 @@ const Contact = () => {
               {/* Animated glow effect */}
               <div className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-secondary rounded-[2.5rem] blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-1000 animate-pulse" />
               
-              <form onSubmit={handleSubmit} className="relative bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-2xl rounded-[2rem] md:rounded-[2.5rem] border border-white/10 p-4 md:p-12 space-y-5 md:space-y-8 shadow-2xl">
+              <form ref={formRef} onSubmit={handleSubmit} className="relative bg-gradient-to-br from-card/90 to-card/50 backdrop-blur-2xl rounded-[2rem] md:rounded-[2.5rem] border border-white/10 p-4 md:p-12 space-y-5 md:space-y-8 shadow-2xl">
                 {/* Form header */}
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
