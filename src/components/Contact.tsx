@@ -23,10 +23,10 @@ const Contact = () => {
     if (!formRef.current) return;
 
     emailjs.sendForm(
-      "service_ty1p9d9",
-      "template_tiwuosb",
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
       formRef.current,
-      "ciAKGsIV-L5ilNSpY"
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY
     )
     .then((result) => {
       console.log(result.text);
