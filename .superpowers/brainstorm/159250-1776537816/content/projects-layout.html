@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects Section Layout</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #050510; color: #e0e0ff; font-family: 'Inter', sans-serif; padding: 24px; }
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card {
+    border: 2px solid #1a1a3a; border-radius: 16px; overflow: hidden;
+    cursor: pointer; transition: border-color 0.2s, transform 0.2s; background: #0a0a1e;
+  }
+  .card:hover { border-color: #00D4FF; transform: translateY(-2px); }
+  .card.selected { border-color: #00D4FF; box-shadow: 0 0 24px #00D4FF44; }
+  .card-preview { height: 280px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #060616; }
+  .card-body { padding: 16px; }
+  .card-body h3 { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .card-body p { font-size: 0.78rem; color: #888; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 8px; font-size: 0.68rem; padding: 2px 8px; border-radius: 99px; border: 1px solid; }
+  .label-badge { position: absolute; top: 10px; right: 10px; background: #ffffff11; border: 1px solid #ffffff22; border-radius: 99px; padding: 3px 10px; font-size: 0.65rem; color: #aaa; z-index: 10; }
+
+  /* ===== OPTION A: 3D COVERFLOW CAROUSEL ===== */
+  .coverflow {
+    position: relative; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    perspective: 600px;
+  }
+  .cf-card {
+    position: absolute; width: 130px; height: 170px;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid #ffffff22;
+    transition: all 0.4s ease;
+    display: flex; flex-direction: column;
+  }
+  .cf-card .cf-img { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .cf-card .cf-title { padding: 6px 8px; font-size: 0.55rem; font-weight: 600; color: #fff; background: #00000044; }
+
+  /* Center card */
+  .cf-center {
+    transform: translateX(0) translateZ(0) rotateY(0deg);
+    box-shadow: 0 0 40px #00D4FF44, 0 20px 60px #00000088;
+    z-index: 5;
+    border-color: #00D4FF66;
+    width: 150px; height: 190px;
+  }
+  /* Left card */
+  .cf-left {
+    transform: translateX(-130px) translateZ(-60px) rotateY(35deg);
+    opacity: 0.6; z-index: 3;
+    background: #0a0a2a;
+  }
+  /* Right card */
+  .cf-right {
+    transform: translateX(130px) translateZ(-60px) rotateY(-35deg);
+    opacity: 0.6; z-index: 3;
+    background: #0a0a2a;
+  }
+  /* Far left */
+  .cf-far-left {
+    transform: translateX(-230px) translateZ(-120px) rotateY(50deg);
+    opacity: 0.3; z-index: 1;
+    background: #080818;
+  }
+  /* Far right */
+  .cf-far-right {
+    transform: translateX(230px) translateZ(-120px) rotateY(-50deg);
+    opacity: 0.3; z-index: 1;
+    background: #080818;
+  }
+  .cf-dots { position: absolute; bottom: 10px; display: flex; gap: 6px; z-index: 10; }
+  .cf-dot { width: 6px; height: 6px; border-radius: 50%; background: #ffffff33; }
+  .cf-dot.active { background: #00D4FF; box-shadow: 0 0 6px #00D4FF; }
+  .cf-arrows { position: absolute; bottom: 10px; right: 12px; display: flex; gap: 6px; z-index: 10; }
+  .cf-arrow { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #00D4FF44; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #00D4FF; cursor: pointer; }
+
+  /* ===== OPTION B: GALLERY CORRIDOR (3D PERSPECTIVE SCROLL) ===== */
+  .corridor {
+    position: relative; width: 100%; height: 100%;
+    perspective: 400px; overflow: hidden;
+  }
+  .corridor-track {
+    position: absolute; top: 20px; left: 0; right: 0; bottom: 20px;
+    transform-style: preserve-3d;
+    display: flex; flex-direction: column; gap: 16px;
+    padding: 0 30px;
+  }
+  .corridor-card {
+    flex-shrink: 0; height: 60px;
+    border-radius: 8px; border: 1px solid #ffffff15;
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 12px;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s;
+  }
+  .corridor-card.featured {
+    height: 80px; border-color: #00D4FF44;
+    background: #00D4FF08;
+    box-shadow: 0 0 20px #00D4FF22;
+  }
+  .corridor-card .c-icon { font-size: 1.4rem; }
+  .corridor-card .c-info { flex: 1; }
+  .corridor-card .c-title { font-size: 0.6rem; font-weight: 700; color: #fff; }
+  .corridor-card .c-tech { font-size: 0.5rem; color: #00D4FF88; margin-top: 2px; }
+  .corridor-card .c-links { display: flex; gap: 4px; }
+  .corridor-card .c-link { font-size: 0.5rem; padding: 2px 6px; border-radius: 4px; border: 1px solid #00D4FF33; color: #00D4FF; }
+  /* Fade top and bottom */
+  .corridor::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40px; background: linear-gradient(#060616, transparent); z-index: 5; }
+  .corridor::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, #060616); z-index: 5; }
+
+  /* ===== OPTION C: BENTO GRID — FEATURED + SMALLER CARDS ===== */
+  .bento {
+    position: relative; width: 100%; height: 100%; padding: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+  }
+  .bento-card {
+    border-radius: 10px; border: 1px solid #ffffff12;
+    background: #0c0c20;
+    overflow: hidden; position: relative;
+    transition: all 0.2s; cursor: pointer;
+    display: flex; flex-direction: column;
+  }
+  .bento-card:hover { border-color: #00D4FF44; box-shadow: 0 0 20px #00D4FF22; transform: scale(1.02); }
+  .bento-card.featured { grid-column: 1 / 3; background: linear-gradient(135deg, #0d1b3e 0%, #0c0c20 100%); border-color: #00D4FF33; }
+  .bento-img { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: #00000033; }
+  .bento-info { padding: 8px; }
+  .bento-info .b-title { font-size: 0.62rem; font-weight: 700; color: #fff; }
+  .bento-info .b-tech { font-size: 0.5rem; color: #888; margin-top: 2px; }
+  .bento-card.featured .bento-img { font-size: 2.5rem; }
+  .bento-card.featured .b-title { font-size: 0.72rem; }
+  .b-badge { position: absolute; top: 6px; left: 6px; font-size: 0.5rem; padding: 2px 6px; border-radius: 99px; background: #00D4FF22; border: 1px solid #00D4FF44; color: #00D4FF; }
+  .b-hover-hint { position: absolute; inset: 0; background: #00D4FF08; opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #00D4FF; }
+  .bento-card:hover .b-hover-hint { opacity: 1; }
+
+  .sel-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00D4FF22; border: 1px solid #00D4FF44; border-radius: 99px; padding: 8px 20px; font-size: 0.8rem; color: #00D4FF; display: none; z-index: 99; }
+  .sel-bar.show { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Projects Section — Which gallery format?</h2>
+<p class="subtitle">You have 9 sections total. The projects gallery needs to be impactful but not exhausting to navigate.</p>
+
+<div class="cards">
+
+  <!-- A: COVERFLOW -->
+  <div class="card" onclick="pick(this,'A — 3D CoverFlow Carousel')">
+    <div class="card-preview">
+      <div class="label-badge">A</div>
+      <div class="coverflow">
+        <div class="cf-card cf-far-left" style="background:linear-gradient(135deg,#0a0a20,#12122a)">
+          <div class="cf-img">🎬</div>
+          <div class="cf-title">FilmFliker</div>
+        </div>
+        <div class="cf-card cf-left" style="background:linear-gradient(135deg,#0d1b2a,#0a1020)">
+          <div class="cf-img">📝</div>
+          <div class="cf-title">NoteApp</div>
+        </div>
+        <div class="cf-card cf-center" style="background:linear-gradient(135deg,#0d2040,#091828)">
+          <div class="cf-img" style="font-size:2rem">🌐</div>
+          <div class="cf-title" style="font-size:0.65rem;padding:8px;">SocialCircle</div>
+        </div>
+        <div class="cf-card cf-right" style="background:linear-gradient(135deg,#1a0d30,#100820)">
+          <div class="cf-img">✍️</div>
+          <div class="cf-title">Socializespot</div>
+        </div>
+        <div class="cf-card cf-far-right" style="background:linear-gradient(135deg,#0a1020,#0a0a20)">
+          <div class="cf-img">🎠</div>
+          <div class="cf-title">Portfolio</div>
+        </div>
+        <div class="cf-dots">
+          <div class="cf-dot"></div>
+          <div class="cf-dot active"></div>
+          <div class="cf-dot"></div>
+          <div class="cf-dot"></div>
+          <div class="cf-dot"></div>
+        </div>
+        <div class="cf-arrows">
+          <div class="cf-arrow">‹</div>
+          <div class="cf-arrow">›</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>3D CoverFlow Carousel</h3>
+      <p>Side cards recede in 3D perspective. Active card zooms forward, others blur and tilt. Book-open animation reveals details. Scroll or arrow keys to navigate.</p>
+      <span class="tag" style="color:#00D4FF;border-color:#00D4FF44">Spec recommendation</span>
+    </div>
+  </div>
+
+  <!-- B: GALLERY CORRIDOR -->
+  <div class="card" onclick="pick(this,'B — Vertical Gallery Corridor')">
+    <div class="card-preview">
+      <div class="label-badge">B</div>
+      <div class="corridor">
+        <div class="corridor-track">
+          <div class="corridor-card" style="background:#0a0a1e88;transform:translateZ(-20px) scale(0.92);opacity:0.5;">
+            <div class="c-icon">🎬</div>
+            <div class="c-info">
+              <div class="c-title">FilmFliker</div>
+              <div class="c-tech">React · REST API</div>
+            </div>
+          </div>
+          <div class="corridor-card featured">
+            <div class="c-icon">🌐</div>
+            <div class="c-info">
+              <div class="c-title">SocialCircle — MERN Platform</div>
+              <div class="c-tech">React · Node · MongoDB · Redis · AWS S3</div>
+            </div>
+            <div class="c-links">
+              <div class="c-link">Live ↗</div>
+              <div class="c-link">Code</div>
+            </div>
+          </div>
+          <div class="corridor-card" style="opacity:0.7;">
+            <div class="c-icon">✍️</div>
+            <div class="c-info">
+              <div class="c-title">Socializespot</div>
+              <div class="c-tech">React · Express · Tailwind</div>
+            </div>
+          </div>
+          <div class="corridor-card" style="background:#0a0a1e88;transform:translateZ(-20px) scale(0.92);opacity:0.5;">
+            <div class="c-icon">📝</div>
+            <div class="c-info">
+              <div class="c-title">NoteApp</div>
+              <div class="c-tech">React · Local Storage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Vertical Gallery Corridor</h3>
+      <p>Projects stack vertically like walking through a gallery. Active row expands full-width with details. Fast to scan, shows all projects simultaneously.</p>
+      <span class="tag" style="color:#7B2FBE;border-color:#7B2FBE44">Most scannable</span>
+    </div>
+  </div>
+
+  <!-- C: BENTO GRID -->
+  <div class="card" onclick="pick(this,'C — 3D Bento Grid')">
+    <div class="card-preview">
+      <div class="label-badge">C</div>
+      <div class="bento">
+        <div class="bento-card featured">
+          <div class="b-badge">⭐ Featured</div>
+          <div class="bento-img">🌐</div>
+          <div class="bento-info">
+            <div class="b-title">SocialCircle – MERN Social Platform</div>
+            <div class="b-tech">React · Node · MongoDB · Redis · AWS</div>
+          </div>
+          <div class="b-hover-hint">Click to open ↗</div>
+        </div>
+        <div class="bento-card">
+          <div class="bento-img" style="font-size:1.4rem">✍️</div>
+          <div class="bento-info">
+            <div class="b-title">Socializespot</div>
+            <div class="b-tech">React · Express</div>
+          </div>
+          <div class="b-hover-hint">Open ↗</div>
+        </div>
+        <div class="bento-card">
+          <div class="bento-img" style="font-size:1.4rem">🎬</div>
+          <div class="bento-info">
+            <div class="b-title">FilmFliker</div>
+            <div class="b-tech">React · API</div>
+          </div>
+          <div class="b-hover-hint">Open ↗</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>3D Bento Grid</h3>
+      <p>Featured project spans full width, others in smaller tiles. Each card tilts in 3D on hover and "opens like a book" to reveal details. Trendy editorial feel.</p>
+      <span class="tag" style="color:#FFD700;border-color:#FFD70044">Most modern</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="sel-bar" id="sel">Selected!</div>
+<script>
+function pick(el, label) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const s = document.getElementById('sel');
+  s.textContent = '✓ ' + label;
+  s.classList.add('show');
+  if (window.recordChoice) window.recordChoice(label);
+}
+</script>
+</body>
+</html>

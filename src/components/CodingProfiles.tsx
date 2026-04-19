@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
+import { motion, useInView } from 'framer-motion';
 import { ExternalLink, Code2, Trophy, Award, Star, TrendingUp, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useCountUp } from '@/hooks/useCountUp';
 
 interface CodingStat {
   label: string;
@@ -213,6 +215,63 @@ const ProfileCard = ({ profile, index }: { profile: CodingProfile; index: number
   );
 };
 
+const RadialRing = ({ percent, color, size = 100 }: { percent: number; color: string; size?: number }) => {
+  const ref = useRef<SVGCircleElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(containerRef, { once: true });
+  const animated = useCountUp(percent, 1400, inView);
+  const r = size / 2 - 8;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (animated / 100) * circ;
+
+  return (
+    <div ref={containerRef} style={{ width: size, height: size, position: 'relative' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={6} />
+        <circle
+          ref={ref}
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={color} strokeWidth={6}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={inView ? offset : circ}
+          style={{ transition: 'stroke-dashoffset 1.4s cubic-bezier(0.22,1,0.36,1)', filter: `drop-shadow(0 0 6px ${color})` }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span className="text-xs font-bold" style={{ color }}>{Math.round(animated)}%</span>
+      </div>
+    </div>
+  );
+};
+
+const AchievementCard = () => (
+  <motion.div
+    className="max-w-sm mx-auto mb-14 rounded-2xl bg-white/5 backdrop-blur-xl border border-yellow-500/30 p-6 flex flex-col items-center gap-4"
+    style={{ boxShadow: '0 0 40px rgba(255,215,0,0.12)' }}
+    initial={{ opacity: 0, scale: 0.95 }}
+    whileInView={{ opacity: 1, scale: 1 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+  >
+    <div className="text-5xl" style={{ filter: 'drop-shadow(0 0 12px gold)' }}>🏆</div>
+    <div className="text-center">
+      <p className="text-xl font-bold text-yellow-400">LeetCode Knight</p>
+      <p className="text-xs text-muted-foreground mt-1">Top 2.28% globally · 2000+ problems solved</p>
+    </div>
+    <div className="flex items-center gap-6">
+      <div className="flex flex-col items-center gap-1">
+        <RadialRing percent={97.72} color="#f97316" size={80} />
+        <span className="text-[10px] text-muted-foreground">Percentile</span>
+      </div>
+      <div className="flex flex-col items-center gap-1">
+        <RadialRing percent={82} color="#7b2fbe" size={80} />
+        <span className="text-[10px] text-muted-foreground">Acceptance</span>
+      </div>
+    </div>
+  </motion.div>
+);
+
 const CodingProfiles = () => {
   const heading = useScrollReveal();
 
@@ -243,11 +302,24 @@ const CodingProfiles = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <AchievementCard />
+
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={{ show: { transition: { staggerChildren: 0.1 } }, hidden: {} }}
+        >
           {profiles.map((profile, index) => (
-            <ProfileCard key={profile.id} profile={profile} index={index} />
+            <motion.div
+              key={profile.id}
+              variants={{ hidden: { opacity: 0, y: 40, scale: 0.95 }, show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } }}
+            >
+              <ProfileCard profile={profile} index={index} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,100 +1,94 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import { useSceneStore } from '@/stores/sceneStore';
+import { useLenis } from '@/providers/LenisProvider';
+
+const NAV_LINKS = [
+  { id: 'home', label: 'Home' },
+  { id: 'fintech', label: 'Fintech' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'coding', label: 'Coding' },
+  { id: 'architecture', label: 'Architecture' },
+  { id: 'contact', label: 'Contact' },
+];
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const activeSection = useSceneStore((s) => s.activeSection);
+  const lenis = useLenis();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-
-      // Update active section based on scroll position
-      const sections = ['home', 'fintech-projects', 'projects', 'skills', 'experience', 'contact'];
-      const scrollPosition = window.scrollY + 100;
-
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: 'smooth' });
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (lenis) {
+      lenis.scrollTo(el, { duration: 1.2 });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
     setIsMobileMenuOpen(false);
   };
 
-  const navLinks = [
-    { id: 'home', label: 'Home' },
-    { id: 'fintech-projects', label: 'Projects' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'contact', label: 'Contact' },
-  ];
-
   return (
     <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-background/85 backdrop-blur-xl border-b border-border'
-            : 'bg-background/30 backdrop-blur-lg'
-        }`}
+      <motion.header
+        className="fixed top-0 left-0 right-0 z-50"
+        animate={{
+          backgroundColor: isScrolled ? 'rgba(5,5,16,0.75)' : 'rgba(5,5,16,0)',
+          borderBottomColor: isScrolled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0)',
+          backdropFilter: isScrolled ? 'blur(24px)' : 'blur(0px)',
+        }}
+        transition={{ duration: 0.3 }}
+        style={{ borderBottomWidth: 1, borderBottomStyle: 'solid' }}
       >
         <nav className="container mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
             <button
-              onClick={() => scrollToSection('home')}
+              onClick={() => scrollTo('home')}
               className="text-lg md:text-xl font-bold text-foreground hover:text-primary transition-colors duration-200"
             >
               Manish Kumar
             </button>
 
-            {/* Desktop Navigation */}
+            {/* Desktop nav */}
             <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
+              {NAV_LINKS.map((link, i) => (
                 <button
                   key={link.id}
-                  onClick={() => scrollToSection(link.id)}
+                  onClick={() => scrollTo(link.id)}
                   className={`text-sm font-medium transition-colors duration-200 relative group ${
-                    activeSection === link.id ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    activeSection === i ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {link.label}
                   <span
                     className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
-                      activeSection === link.id ? 'w-full' : 'w-0 group-hover:w-full'
+                      activeSection === i ? 'w-full' : 'w-0 group-hover:w-full'
                     }`}
                   />
                 </button>
               ))}
             </div>
 
-            {/* CTA Button - Desktop */}
             <div className="hidden md:block">
               <Button
-                onClick={() => scrollToSection('contact')}
+                onClick={() => scrollTo('contact')}
                 className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
               >
                 Let's Connect
               </Button>
             </div>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden text-foreground hover:text-primary transition-colors"
@@ -103,36 +97,42 @@ const Navigation = () => {
             </button>
           </div>
         </nav>
-      </header>
+      </motion.header>
 
-      {/* Mobile Menu Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-background/95 backdrop-blur-xl md:hidden transition-all duration-300 ${
-          isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-        }`}
-      >
-        <div className="flex flex-col items-center justify-center h-full gap-8">
-          {navLinks.map((link, index) => (
-            <button
-              key={link.id}
-              onClick={() => scrollToSection(link.id)}
-              className={`text-2xl font-medium transition-all duration-200 ${
-                activeSection === link.id ? 'text-primary scale-110' : 'text-foreground hover:text-primary hover:scale-105'
-              }`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {link.label}
-            </button>
-          ))}
-          <Button
-            onClick={() => scrollToSection('contact')}
-            size="lg"
-            className="mt-4 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+      {/* Mobile full-screen menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-background/95 backdrop-blur-xl md:hidden flex flex-col items-center justify-center gap-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           >
-            Let's Connect
-          </Button>
-        </div>
-      </div>
+            {NAV_LINKS.map((link, i) => (
+              <motion.button
+                key={link.id}
+                onClick={() => scrollTo(link.id)}
+                className={`text-2xl font-medium transition-colors ${
+                  activeSection === i ? 'text-primary' : 'text-foreground hover:text-primary'
+                }`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                {link.label}
+              </motion.button>
+            ))}
+            <Button
+              onClick={() => scrollTo('contact')}
+              size="lg"
+              className="mt-4 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+            >
+              Let's Connect
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

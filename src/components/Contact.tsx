@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,6 +7,91 @@ import { Send, Mail, MapPin, Phone, Download, Github, Linkedin, Twitter, Sparkle
 import { useToast } from '@/hooks/use-toast';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import emailjs from 'emailjs-com';
+
+const TYPEWRITER_TEXT = "Let's Build Something.";
+
+const TypewriterHeadline = () => {
+  const [displayed, setDisplayed] = useState('');
+  const [showCursor, setShowCursor] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          let i = 0;
+          setShowCursor(true);
+          const interval = setInterval(() => {
+            i++;
+            setDisplayed(TYPEWRITER_TEXT.slice(0, i));
+            if (i >= TYPEWRITER_TEXT.length) {
+              clearInterval(interval);
+              // Blink cursor 3 times then stop
+              let blinks = 0;
+              const blink = setInterval(() => {
+                blinks++;
+                setShowCursor((v) => !v);
+                if (blinks >= 6) { clearInterval(blink); setShowCursor(false); }
+              }, 500);
+            }
+          }, 70);
+        }
+      },
+      { threshold: 0.5 },
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref}>
+      <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+        <span style={{ textShadow: '0 0 30px rgba(0,212,255,0.3)' }}>{displayed}</span>
+        {showCursor && <span className="text-primary animate-pulse">|</span>}
+      </h2>
+    </div>
+  );
+};
+
+const SocialCube = ({ icon: Icon, label, href, color }: { icon: typeof Github; label: string; href: string; color: string }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="group relative"
+    style={{ width: 56, height: 56, perspective: '200px', display: 'block' }}
+    aria-label={label}
+  >
+    <motion.div
+      style={{ width: '100%', height: '100%', transformStyle: 'preserve-3d', position: 'relative' }}
+      whileHover={{ rotateX: -90 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {/* Front face: icon */}
+      <div
+        style={{ backfaceVisibility: 'hidden', position: 'absolute', inset: 0 }}
+        className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm flex items-center justify-center"
+      >
+        <Icon className="w-5 h-5" style={{ color }} />
+      </div>
+      {/* Top face: label */}
+      <div
+        style={{
+          backfaceVisibility: 'hidden',
+          position: 'absolute', inset: 0,
+          transform: 'rotateX(90deg) translateZ(28px)',
+          background: color + '22',
+          border: `1px solid ${color}44`,
+        }}
+        className="rounded-xl flex items-center justify-center"
+      >
+        <span className="text-[9px] font-bold" style={{ color }}>{label}</span>
+      </div>
+    </motion.div>
+  </a>
+);
 
 const Contact = () => {
   const formRef = useRef<HTMLFormElement>(null);
@@ -75,12 +161,9 @@ const Contact = () => {
             <span className="text-xs md:text-sm font-semibold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Let's Connect</span>
           </div>
           
-          <h2 className="text-2xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-6 md:mb-10 leading-tight px-2">
-            <span className="block text-foreground mb-2">Ready to build</span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-secondary bg-[length:200%_auto] animate-gradient-x">
-              the future?
-            </span>
-          </h2>
+          <TypewriterHeadline />
+          <h2 className="sr-only">Let's Build Something.</h2>
+          <p className="text-base md:text-xl text-muted-foreground mt-2 mb-6">Ready to build the future together</p>
           
           <p className="text-base md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light px-4">
             Let's discuss how we can create exceptional digital experiences together
@@ -149,24 +232,10 @@ const Contact = () => {
                   <div className="w-8 h-[2px] bg-gradient-to-r from-primary to-purple-500" />
                   Connect
                 </h3>
-                <div className="flex gap-4">
-                  {[
-                    { icon: Github, href: "https://github.com/ManishK4514", label: "Github", color: "from-gray-500 to-gray-700" },
-                    { icon: Linkedin, href: "https://linkedin.com/in/manishk4514", label: "LinkedIn", color: "from-blue-500 to-blue-700" },
-                    { icon: Twitter, href: "#", label: "Twitter", color: "from-cyan-500 to-blue-500" }
-                  ].map((social, idx) => (
-                    <a
-                      key={idx}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group relative p-3 md:p-5 rounded-2xl bg-gradient-to-br from-background/80 to-background/40 border border-white/10 hover:border-primary/30 transition-all duration-300 flex-1"
-                      aria-label={social.label}
-                    >
-                      <div className={`absolute inset-0 bg-gradient-to-br ${social.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`} />
-                      <social.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-all group-hover:scale-110 mx-auto" />
-                    </a>
-                  ))}
+                <div className="flex gap-4 items-center">
+                  <SocialCube icon={Github} href="https://github.com/ManishK4514" label="GitHub" color="#c9d1d9" />
+                  <SocialCube icon={Linkedin} href="https://linkedin.com/in/manishk4514" label="LinkedIn" color="#0A66C2" />
+                  <SocialCube icon={Twitter} href="#" label="Twitter" color="#1DA1F2" />
                 </div>
               </div>
             </div>

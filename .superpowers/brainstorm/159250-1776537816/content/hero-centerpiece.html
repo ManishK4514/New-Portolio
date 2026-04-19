@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hero 3D Centerpiece Options</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #050510; color: #e0e0ff; font-family: 'Inter', sans-serif; padding: 24px; }
+
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  .card {
+    border: 2px solid #1a1a3a;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    background: #0a0a1e;
+  }
+  .card:hover { border-color: #00D4FF; transform: translateY(-2px); }
+  .card.selected { border-color: #00D4FF; box-shadow: 0 0 24px #00D4FF44; }
+
+  .card-preview {
+    height: 260px;
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .card-body { padding: 16px; }
+  .card-body h3 { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .card-body p { font-size: 0.78rem; color: #888; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 8px; font-size: 0.68rem; padding: 2px 8px; border-radius: 99px; border: 1px solid; }
+
+  /* === OPTION A: TORUS KNOT + GRID FLOOR === */
+  .preview-a {
+    background: radial-gradient(ellipse at 50% 30%, #0d1b4b 0%, #050510 70%);
+  }
+  .grid-floor {
+    position: absolute; bottom: -20px; left: 0; right: 0; height: 120px;
+    background:
+      linear-gradient(rgba(0,212,255,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.15) 1px, transparent 1px);
+    background-size: 30px 30px;
+    transform: perspective(200px) rotateX(60deg);
+    transform-origin: bottom center;
+  }
+  .torus-knot {
+    width: 120px; height: 120px;
+    border: 3px solid #00D4FF;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 40px #00D4FF66, inset 0 0 30px #7B2FBE44;
+    animation: spin-y 6s linear infinite;
+  }
+  .torus-knot::before {
+    content: '';
+    position: absolute; inset: 12px;
+    border: 2px solid #7B2FBE;
+    border-radius: 50%;
+    animation: spin-x 4s linear infinite;
+  }
+  .torus-knot::after {
+    content: '';
+    position: absolute; inset: 28px;
+    border: 1px solid #00D4FF88;
+    border-radius: 50%;
+    animation: spin-y 3s linear infinite reverse;
+  }
+  @keyframes spin-y { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+  @keyframes spin-x { from { transform: rotateX(0deg) rotateY(0deg); } to { transform: rotateX(360deg) rotateY(180deg); } }
+
+  .particle-a {
+    position: absolute; width: 2px; height: 2px; background: #00D4FF; border-radius: 50%;
+    animation: float-rand 3s ease-in-out infinite;
+  }
+  @keyframes float-rand {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0.6; }
+    50% { transform: translateY(-20px) translateX(10px); opacity: 1; }
+  }
+
+  /* === OPTION B: ICOSAHEDRON + PARTICLE NAME === */
+  .preview-b {
+    background: radial-gradient(ellipse at 40% 50%, #1a0533 0%, #050510 65%);
+  }
+  .icosa {
+    width: 110px; height: 110px;
+    position: relative;
+    animation: icosa-spin 8s linear infinite;
+  }
+  .icosa svg { width: 100%; height: 100%; }
+  @keyframes icosa-spin {
+    from { transform: rotate(0deg) rotateY(0deg); }
+    to { transform: rotate(360deg) rotateY(360deg); }
+  }
+  .particle-name {
+    position: absolute; top: 30px; right: 20px; left: 20px;
+    display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
+  }
+  .p-dot {
+    width: 3px; height: 3px; border-radius: 50%; background: #7B2FBE;
+    animation: p-pulse 2s ease-in-out infinite;
+  }
+  @keyframes p-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+  .orbit-ring {
+    position: absolute; width: 160px; height: 160px;
+    border: 1px dashed #7B2FBE44;
+    border-radius: 50%;
+    animation: orbit-rot 10s linear infinite;
+  }
+  @keyframes orbit-rot { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .orbit-sat {
+    position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #FFD700; box-shadow: 0 0 8px #FFD700;
+  }
+
+  /* === OPTION C: ABSTRACT NEURAL SPHERE === */
+  .preview-c {
+    background: radial-gradient(ellipse at 60% 40%, #001830 0%, #050510 65%);
+  }
+  .neural-sphere {
+    width: 130px; height: 130px; position: relative;
+  }
+  .node {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    background: #00D4FF; box-shadow: 0 0 10px #00D4FF;
+    animation: node-pulse 2s ease-in-out infinite;
+  }
+  .node:nth-child(2) { top: 10%; left: 50%; background: #7B2FBE; animation-delay: 0.3s; }
+  .node:nth-child(3) { top: 50%; left: 10%; background: #FFD700; animation-delay: 0.6s; }
+  .node:nth-child(4) { top: 80%; left: 40%; animation-delay: 0.9s; }
+  .node:nth-child(5) { top: 30%; left: 80%; background: #7B2FBE; animation-delay: 1.2s; }
+  .node:nth-child(6) { top: 65%; left: 75%; animation-delay: 1.5s; }
+  @keyframes node-pulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.6);opacity:1} }
+  .sphere-outline {
+    position: absolute; inset: 5px;
+    border: 1px solid #00D4FF22; border-radius: 50%;
+    box-shadow: 0 0 60px #00D4FF22, inset 0 0 40px #7B2FBE11;
+    animation: sphere-glow 4s ease-in-out infinite;
+  }
+  @keyframes sphere-glow { 0%,100%{box-shadow:0 0 40px #00D4FF22,inset 0 0 20px #7B2FBE11} 50%{box-shadow:0 0 80px #00D4FF44,inset 0 0 40px #7B2FBE33} }
+  .connect-line {
+    position: absolute; background: linear-gradient(90deg, #00D4FF44, transparent);
+    height: 1px; transform-origin: left center;
+  }
+
+  .label-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: #ffffff11; border: 1px solid #ffffff22;
+    border-radius: 99px; padding: 3px 10px;
+    font-size: 0.65rem; color: #aaa; letter-spacing: 0.05em;
+  }
+
+  .selected-indicator {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #00D4FF22; border: 1px solid #00D4FF44;
+    border-radius: 99px; padding: 8px 20px;
+    font-size: 0.8rem; color: #00D4FF;
+    display: none;
+  }
+  .selected-indicator.visible { display: block; }
+</style>
+<script>
+function select(el, id) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.querySelector('.selected-indicator').classList.add('visible');
+  document.querySelector('.selected-indicator').textContent = '✓ Selected: ' + id;
+  if (window.recordChoice) window.recordChoice(id);
+}
+</script>
+</head>
+<body>
+
+<h2>Hero 3D Centerpiece — Which visual direction?</h2>
+<p class="subtitle">The primary focal object that greets every visitor. Sets the entire tone of the portfolio.</p>
+
+<div class="cards">
+
+  <!-- OPTION A -->
+  <div class="card" onclick="select(this, 'A — Torus Knot + Cyberpunk Grid')">
+    <div class="card-preview preview-a">
+      <div class="label-badge">Option A</div>
+      <div class="grid-floor"></div>
+      <!-- Scattered particles -->
+      <div class="particle-a" style="top:20%;left:15%;animation-delay:0s"></div>
+      <div class="particle-a" style="top:40%;left:80%;animation-delay:0.5s"></div>
+      <div class="particle-a" style="top:60%;left:25%;animation-delay:1s"></div>
+      <div class="particle-a" style="top:15%;left:65%;animation-delay:1.5s"></div>
+      <div class="particle-a" style="top:70%;left:70%;animation-delay:0.7s"></div>
+      <div style="position:relative;z-index:2">
+        <div class="torus-knot"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Torus Knot + Cyberpunk Grid</h3>
+      <p>Glowing wireframe knot above a receding neon grid floor. Most cinematic — looks like a sci-fi terminal. Name text floats left.</p>
+      <span class="tag" style="color:#00D4FF;border-color:#00D4FF44">Sci-fi / Cyberpunk</span>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="card" onclick="select(this, 'B — Icosahedron + Particle Name')">
+    <div class="card-preview preview-b">
+      <div class="label-badge">Option B</div>
+      <div class="orbit-ring" style="top:calc(50% - 80px);left:calc(50% - 80px)">
+        <div class="orbit-sat"></div>
+      </div>
+      <div class="orbit-ring" style="width:200px;height:200px;top:calc(50% - 100px);left:calc(50% - 100px);animation-duration:15s;animation-direction:reverse;border-color:#00D4FF33">
+        <div class="orbit-sat" style="background:#00D4FF;box-shadow:0 0 8px #00D4FF;top:auto;bottom:-4px"></div>
+      </div>
+      <div class="icosa" style="position:relative;z-index:2">
+        <svg viewBox="0 0 100 100" fill="none">
+          <polygon points="50,5 95,27 95,73 50,95 5,73 5,27" stroke="#7B2FBE" stroke-width="1.5" fill="#7B2FBE11"/>
+          <polygon points="50,5 75,50 25,50" stroke="#00D4FF" stroke-width="1" fill="none"/>
+          <polygon points="50,95 75,50 25,50" stroke="#00D4FF" stroke-width="1" fill="none"/>
+          <circle cx="50" cy="50" r="20" stroke="#FFD70066" stroke-width="1" fill="none"/>
+        </svg>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Icosahedron + Orbital Satellites</h3>
+      <p>Geometric gem with tech logos orbiting like satellites. Particles form your name on load then scatter. More playful, less dark.</p>
+      <span class="tag" style="color:#7B2FBE;border-color:#7B2FBE44">Geometric / Space</span>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="card" onclick="select(this, 'C — Neural Sphere + Data Flows')">
+    <div class="card-preview preview-c">
+      <div class="label-badge">Option C</div>
+      <div class="neural-sphere" style="position:relative;z-index:2">
+        <div class="sphere-outline"></div>
+        <div class="node" style="top:20%;left:45%"></div>
+        <div class="node" style="top:10%;left:50%"></div>
+        <div class="node" style="top:50%;left:10%"></div>
+        <div class="node" style="top:80%;left:40%"></div>
+        <div class="node" style="top:30%;left:80%"></div>
+        <div class="node" style="top:65%;left:75%"></div>
+        <!-- Connection lines approximation -->
+        <div class="connect-line" style="top:23%;left:48%;width:40px;transform:rotate(30deg)"></div>
+        <div class="connect-line" style="top:53%;left:13%;width:60px;transform:rotate(-20deg)"></div>
+        <div class="connect-line" style="top:68%;left:30%;width:50px;transform:rotate(15deg)"></div>
+      </div>
+      <!-- floating data streams -->
+      <div style="position:absolute;top:15px;left:15px;font-family:monospace;font-size:0.55rem;color:#00D4FF33;line-height:1.8">
+        API_CALL → 200ms<br>
+        TX: $500K+/mo<br>
+        UPTIME: 99.9%
+      </div>
+      <div style="position:absolute;bottom:25px;right:15px;font-family:monospace;font-size:0.55rem;color:#7B2FBE33;line-height:1.8;text-align:right">
+        Redis ↔ PG<br>
+        JWT ✓<br>
+        eKYC LIVE
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Neural Sphere + Live Data Streams</h3>
+      <p>Glowing node network sphere with floating metric cards and data streams. Reinforces your fintech/backend identity directly.</p>
+      <span class="tag" style="color:#FFD700;border-color:#FFD70044">Tech / Data-driven</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="selected-indicator"></div>
+
+<script>
+// Integrate with visual companion helper if loaded
+if (typeof toggleSelect !== 'undefined') {
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', function() {
+      const choice = this.querySelector('h3').textContent;
+      if (window.recordChoice) window.recordChoice(choice);
+    });
+  });
+}
+</script>
+</body>
+</html>

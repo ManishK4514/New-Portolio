@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Server, Database, Zap, Layers } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
@@ -65,10 +66,10 @@ const ArchitectureCard = ({ architecture, index }: { architecture: Architecture;
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
+        <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform duration-300 flex-shrink-0" style={{ boxShadow: '0 0 16px rgba(0,212,255,0.15)' }}>
           {architecture.icon}
         </div>
-        <p className="text-muted-foreground leading-relaxed">{architecture.title}</p>
+        <p className="text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors duration-300">{architecture.title}</p>
       </div>
     </div>
   );
@@ -88,11 +89,22 @@ const TechnicalArchitecture = () => {
           <p className="text-lg md:text-xl text-muted-foreground">System design and scalability achievements</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={{ show: { transition: { staggerChildren: 0.12 } }, hidden: {} }}
+        >
           {architectures.map((architecture, index) => (
-            <ArchitectureCard key={architecture.id} architecture={architecture} index={index} />
+            <motion.div
+              key={architecture.id}
+              variants={{ hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } }}
+            >
+              <ArchitectureCard architecture={architecture} index={index} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

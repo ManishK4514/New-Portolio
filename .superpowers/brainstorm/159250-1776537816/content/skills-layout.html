@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skills Section Layout</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #050510; color: #e0e0ff; font-family: 'Inter', sans-serif; padding: 24px; }
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card {
+    border: 2px solid #1a1a3a; border-radius: 16px; overflow: hidden;
+    cursor: pointer; transition: border-color 0.2s, transform 0.2s; background: #0a0a1e;
+  }
+  .card:hover { border-color: #00D4FF; transform: translateY(-2px); }
+  .card.selected { border-color: #00D4FF; box-shadow: 0 0 24px #00D4FF44; }
+  .card-preview { height: 280px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .card-body { padding: 16px; }
+  .card-body h3 { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .card-body p { font-size: 0.78rem; color: #888; line-height: 1.5; }
+  .tag { display: inline-block; margin-top: 8px; font-size: 0.68rem; padding: 2px 8px; border-radius: 99px; border: 1px solid; }
+  .label-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: #ffffff11; border: 1px solid #ffffff22;
+    border-radius: 99px; padding: 3px 10px;
+    font-size: 0.65rem; color: #aaa;
+  }
+
+  /* ===== OPTION A: GALAXY / SOLAR SYSTEM — categories as planets, skills as moons ===== */
+  .preview-a { background: radial-gradient(ellipse at 50% 50%, #080820 0%, #050510 80%); }
+  .sun { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle, #FFD700, #ff8800); box-shadow: 0 0 30px #FFD70066; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 5; display: flex; align-items: center; justify-content: center; font-size: 0.45rem; font-weight: 700; color: #000; text-align: center; line-height: 1.2; }
+  .planet-orbit { position: absolute; top: 50%; left: 50%; border: 1px dashed #ffffff11; border-radius: 50%; transform: translate(-50%,-50%); }
+  .planet { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.42rem; font-weight: 700; color: #fff; text-align: center; line-height: 1.2; cursor: pointer; transition: transform 0.2s; }
+  .planet:hover { transform: scale(1.3) !important; }
+  .moon-orbit { position: absolute; border: 1px dashed #ffffff08; border-radius: 50%; }
+  .moon { position: absolute; border-radius: 50%; background: #ffffff22; border: 1px solid #ffffff33; }
+
+  /* ===== OPTION B: CATEGORY TABS + FLOATING ORBS IN ZONE ===== */
+  .preview-b { background: #060616; flex-direction: column; padding: 16px; gap: 12px; }
+  .cat-tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .cat-tab {
+    padding: 4px 10px; border-radius: 99px; font-size: 0.62rem; font-weight: 600;
+    border: 1px solid; cursor: pointer; transition: all 0.2s;
+  }
+  .cat-tab.active { background: #00D4FF22; border-color: #00D4FF; color: #00D4FF; }
+  .cat-tab:not(.active) { border-color: #ffffff22; color: #888; }
+  .orb-zone { position: relative; flex: 1; width: 100%; }
+  .orb {
+    position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 2px; font-size: 0.5rem; color: #fff; font-weight: 600;
+    text-align: center; border: 1px solid; backdrop-filter: blur(4px);
+    transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;
+  }
+  .orb:hover { transform: scale(1.2) translateY(-4px) !important; }
+  .orb-icon { font-size: 1rem; }
+
+  /* ===== OPTION C: NEURAL NET BACKGROUND + SKILL CARDS IN FLOATING GRID ===== */
+  .preview-c { background: #050514; flex-direction: column; padding: 0; }
+  .neural-bg { position: absolute; inset: 0; overflow: hidden; }
+  .n-node { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #00D4FF; opacity: 0.4; }
+  .n-line { position: absolute; background: linear-gradient(90deg, #00D4FF22, transparent); height: 1px; transform-origin: left center; }
+  .skill-grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 16px; width: 100%; }
+  .skill-chip {
+    background: #ffffff08; border: 1px solid #ffffff15;
+    border-radius: 10px; padding: 8px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 0.52rem; color: #ccc; font-weight: 500;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .skill-chip:hover { background: #00D4FF11; border-color: #00D4FF44; transform: translateY(-2px); }
+  .skill-chip .s-icon { font-size: 1.1rem; }
+  .cat-label-c { font-size: 0.6rem; color: #00D4FF; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 16px 4px; }
+
+  .selected-indicator {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #00D4FF22; border: 1px solid #00D4FF44;
+    border-radius: 99px; padding: 8px 20px; font-size: 0.8rem; color: #00D4FF;
+    display: none; z-index: 99;
+  }
+  .selected-indicator.show { display: block; }
+</style>
+</head>
+<body>
+
+<h2>Skills Section — How should orbs be organized?</h2>
+<p class="subtitle">All three use floating 3D orbs with hover-expand cards. The difference is spatial organization and how categories interact.</p>
+
+<div class="cards">
+
+  <!-- OPTION A: SOLAR SYSTEM -->
+  <div class="card" onclick="pick(this,'A — Solar System Galaxy')">
+    <div class="card-preview preview-a">
+      <div class="label-badge">A</div>
+
+      <!-- Orbit rings -->
+      <div class="planet-orbit" style="width:80px;height:80px;"></div>
+      <div class="planet-orbit" style="width:140px;height:140px;"></div>
+      <div class="planet-orbit" style="width:210px;height:210px;"></div>
+      <div class="planet-orbit" style="width:270px;height:270px;"></div>
+
+      <!-- Center sun = ALL skills -->
+      <div class="sun">All<br>Skills</div>
+
+      <!-- Planet 1: Frontend (blue) -->
+      <div class="planet" style="width:28px;height:28px;background:radial-gradient(circle,#61dafb,#0ea5e9);box-shadow:0 0 12px #61dafb88;top:calc(50% - 40px - 14px);left:calc(50% - 14px);">Front<br>end</div>
+      <!-- Planet 2: Backend (green) -->
+      <div class="planet" style="width:26px;height:26px;background:radial-gradient(circle,#339933,#166534);box-shadow:0 0 12px #33993388;top:calc(50% - 14px);left:calc(50% + 56px);">Back<br>end</div>
+      <!-- Planet 3: DB (purple) -->
+      <div class="planet" style="width:22px;height:22px;background:radial-gradient(circle,#7B2FBE,#4c1d95);box-shadow:0 0 12px #7B2FBE88;top:calc(50% + 70px);left:calc(50% - 50px);">Data<br>base</div>
+      <!-- Planet 4: DevOps (orange) -->
+      <div class="planet" style="width:24px;height:24px;background:radial-gradient(circle,#ff9900,#b45309);box-shadow:0 0 12px #ff990088;top:calc(50% + 40px);left:calc(50% + 80px);">Dev<br>Ops</div>
+      <!-- Planet 5: Lang (gold) -->
+      <div class="planet" style="width:20px;height:20px;background:radial-gradient(circle,#FFD700,#b45309);box-shadow:0 0 10px #FFD70088;top:calc(50% - 95px);left:calc(50% + 55px);">Lang</div>
+
+      <!-- Some tiny moons -->
+      <div class="moon" style="width:8px;height:8px;top:calc(50% - 52px);left:calc(50% + 10px);background:#61dafb44;"></div>
+      <div class="moon" style="width:7px;height:7px;top:calc(50% - 8px);left:calc(50% + 78px);background:#33993344;"></div>
+      <div class="moon" style="width:6px;height:6px;top:calc(50% + 60px);left:calc(50% - 80px);background:#7B2FBE44;"></div>
+    </div>
+    <div class="card-body">
+      <h3>Solar System Galaxy</h3>
+      <p>Categories orbit a central hub like planets. Click a planet → its skills (moons) expand into view. Visually dramatic, great for showing relationships.</p>
+      <span class="tag" style="color:#7B2FBE;border-color:#7B2FBE44">Most unique</span>
+    </div>
+  </div>
+
+  <!-- OPTION B: CATEGORY TABS + ORBS -->
+  <div class="card" onclick="pick(this,'B — Category Tabs + Floating Orbs')">
+    <div class="card-preview preview-b">
+      <div class="label-badge">B</div>
+      <div class="cat-tabs">
+        <div class="cat-tab active">Frontend</div>
+        <div class="cat-tab">Backend</div>
+        <div class="cat-tab">DevOps</div>
+        <div class="cat-tab">Languages</div>
+        <div class="cat-tab">DB</div>
+      </div>
+      <div class="orb-zone" style="height:180px;position:relative;">
+        <!-- React -->
+        <div class="orb" style="width:52px;height:52px;top:10px;left:10px;background:#61dafb15;border-color:#61dafb55;box-shadow:0 0 16px #61dafb33;"><span class="orb-icon">⚛</span>React</div>
+        <!-- Next -->
+        <div class="orb" style="width:44px;height:44px;top:20px;left:80px;background:#ffffff10;border-color:#ffffff33;"><span class="orb-icon">▲</span>Next</div>
+        <!-- TS -->
+        <div class="orb" style="width:48px;height:48px;top:5px;left:150px;background:#3178c615;border-color:#3178c655;box-shadow:0 0 14px #3178c633;"><span class="orb-icon">TS</span>TypeScript</div>
+        <!-- Redux -->
+        <div class="orb" style="width:42px;height:42px;top:18px;left:215px;background:#764abc15;border-color:#764abc55;"><span class="orb-icon">⬡</span>Redux</div>
+        <!-- Tailwind -->
+        <div class="orb" style="width:50px;height:50px;top:80px;left:40px;background:#06b6d415;border-color:#06b6d455;box-shadow:0 0 16px #06b6d433;"><span class="orb-icon">🌊</span>Tailwind</div>
+        <!-- HTML -->
+        <div class="orb" style="width:40px;height:40px;top:90px;left:130px;background:#e34f2615;border-color:#e34f2655;"><span class="orb-icon">📄</span>HTML5</div>
+        <!-- CSS -->
+        <div class="orb" style="width:40px;height:40px;top:95px;left:190px;background:#1572b615;border-color:#1572b655;"><span class="orb-icon">🎨</span>CSS3</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Category Tabs + Floating Orbs</h3>
+      <p>Filter tabs spring-animate orbs into clusters by category. Clicking a tab groups orbs with physics spring motion. Most readable for recruiters.</p>
+      <span class="tag" style="color:#00D4FF;border-color:#00D4FF44">Most usable</span>
+    </div>
+  </div>
+
+  <!-- OPTION C: NEURAL NET + SKILL GRID -->
+  <div class="card" onclick="pick(this,'C — Neural Network + Skill Grid')">
+    <div class="card-preview preview-c">
+      <div class="label-badge">C</div>
+      <div class="neural-bg">
+        <div class="n-node" style="top:20%;left:15%"></div>
+        <div class="n-node" style="top:50%;left:5%"></div>
+        <div class="n-node" style="top:30%;left:50%"></div>
+        <div class="n-node" style="top:70%;left:40%"></div>
+        <div class="n-node" style="top:15%;left:75%"></div>
+        <div class="n-node" style="top:60%;left:85%"></div>
+        <div class="n-line" style="top:20%;left:15%;width:80px;transform:rotate(25deg)"></div>
+        <div class="n-line" style="top:30%;left:50%;width:60px;transform:rotate(-15deg)"></div>
+        <div class="n-line" style="top:50%;left:5%;width:100px;transform:rotate(5deg)"></div>
+      </div>
+      <div style="position:relative;z-index:2;width:100%;">
+        <div class="cat-label-c">⬡ Frontend</div>
+        <div class="skill-grid">
+          <div class="skill-chip"><span class="s-icon">⚛</span>React</div>
+          <div class="skill-chip"><span class="s-icon">▲</span>Next.js</div>
+          <div class="skill-chip"><span class="s-icon">TS</span>TypeScript</div>
+          <div class="skill-chip"><span class="s-icon">🌊</span>Tailwind</div>
+        </div>
+        <div class="cat-label-c" style="color:#7B2FBE">⬡ Backend</div>
+        <div class="skill-grid">
+          <div class="skill-chip"><span class="s-icon">🟢</span>Node.js</div>
+          <div class="skill-chip"><span class="s-icon">🔴</span>NestJS</div>
+          <div class="skill-chip"><span class="s-icon">🌿</span>Spring</div>
+          <div class="skill-chip"><span class="s-icon">📦</span>Express</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Neural Network + Skill Grid</h3>
+      <p>Animated neural net as background. Skills laid out in a glowing grid with connecting lines between related techs. Scroll-reveals row by row.</p>
+      <span class="tag" style="color:#FFD700;border-color:#FFD70044">Most legible</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="selected-indicator" id="sel">Selected!</div>
+
+<script>
+function pick(el, label) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const s = document.getElementById('sel');
+  s.textContent = '✓ ' + label;
+  s.classList.add('show');
+  if (window.recordChoice) window.recordChoice(label);
+}
+</script>
+</body>
+</html>

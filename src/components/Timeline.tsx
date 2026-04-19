@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Briefcase, GraduationCap, Circle } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useExperience } from '@/hooks/usePortfolioData';
 import { Skeleton } from '@/components/ui/skeleton';
+import profileImage from '@/assets/profile.png';
 
 interface TimelineItem {
   id: number | string;
@@ -171,6 +173,60 @@ const TimelineItemCard = ({
   );
 };
 
+const ProfileCard = () => {
+  const [flipped, setFlipped] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setFlipped(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="flex justify-center mb-14" style={{ perspective: '1000px' }}>
+      <motion.div
+        style={{ width: 340, height: 220, transformStyle: 'preserve-3d', cursor: 'pointer' }}
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        onClick={() => setFlipped((f) => !f)}
+      >
+        {/* Front */}
+        <div
+          style={{ backfaceVisibility: 'hidden', position: 'absolute', inset: 0 }}
+          className="rounded-2xl overflow-hidden border border-white/10 bg-card/80 backdrop-blur-xl shadow-xl flex"
+        >
+          <div className="w-40 overflow-hidden flex-shrink-0">
+            <img src={profileImage} alt="Manish Kumar" className="w-full h-full object-cover" />
+          </div>
+          <div className="p-5 flex flex-col justify-center gap-2">
+            <p className="text-lg font-bold text-foreground">Manish Kumar</p>
+            <p className="text-xs text-primary">Full-Stack Engineer</p>
+            <p className="text-xs text-muted-foreground">Payment Systems Architect</p>
+            <p className="text-[10px] text-muted-foreground mt-2">Click to flip →</p>
+          </div>
+        </div>
+
+        {/* Back */}
+        <div
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', position: 'absolute', inset: 0 }}
+          className="rounded-2xl border border-primary/30 bg-card/95 backdrop-blur-xl p-5 grid grid-cols-2 gap-3"
+        >
+          {[
+            { label: 'Experience', value: '3+ yrs' },
+            { label: 'Companies', value: '2' },
+            { label: 'Projects', value: '10+' },
+            { label: 'CGPA', value: '8.7' },
+          ].map((s) => (
+            <div key={s.label} className="flex flex-col items-center justify-center rounded-xl bg-white/5 border border-white/8 py-3">
+              <span className="text-xl font-bold text-primary">{s.value}</span>
+              <span className="text-[10px] text-muted-foreground">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 const Timeline = () => {
   const timelineRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
@@ -238,13 +294,17 @@ const Timeline = () => {
   return (
     <section className="py-20 px-4 relative">
       <div className="container mx-auto">
-        <div 
+        <div
           ref={heading.ref}
-          className={`text-center mb-16 reveal ${heading.isVisible ? 'active reveal-fade-up' : ''}`}
+          className={`text-center mb-10 reveal ${heading.isVisible ? 'active reveal-fade-up' : ''}`}
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Experience & Education</h2>
           <p className="text-lg md:text-xl text-muted-foreground">My professional journey</p>
         </div>
+
+        {/* Profile flip card */}
+        <ProfileCard />
+
 
         <div ref={timelineRef} className="max-w-6xl mx-auto relative">
           {/* Background line */}

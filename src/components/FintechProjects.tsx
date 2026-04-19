@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
-import { Database, Shield, TrendingUp, CheckCircle2, Zap, Server, Activity, ArrowRight } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Database, Shield, TrendingUp, CheckCircle2, Zap, Server, Activity } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { Button } from '@/components/ui/button';
+import { useCountUp } from '@/hooks/useCountUp';
 
 interface FintechProject {
   id: number;
@@ -170,39 +171,100 @@ const FintechProjectCard = ({ project, index }: { project: FintechProject; index
   );
 };
 
+const MARQUEE_PILLS = [
+  '50+ enterprise clients', '10K+ daily eKYC verifications', '$500K+/mo transactions',
+  '30 hrs/week saved', '99% uptime SLA', 'sub-200ms API latency',
+  'PCI-DSS compliant', 'Multi-gateway fallback', 'Real-time fraud detection',
+];
+
+const StatCard = ({ value, label, suffix = '' }: { value: number; label: string; suffix?: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true });
+  const count = useCountUp(value, 1400, inView);
+  return (
+    <div ref={ref} className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-center">
+      <div className="text-3xl font-bold text-primary">{Math.round(count)}{suffix}</div>
+      <div className="text-xs text-muted-foreground mt-1">{label}</div>
+    </div>
+  );
+};
+
 const FintechProjects = () => {
   const heading = useScrollReveal();
 
   return (
-    <section id="fintech-projects" className="py-24 px-4 relative overflow-hidden">
-      {/* Background Decorations */}
+    <section className="py-24 px-4 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary/5 blur-[100px] rounded-full opacity-50" />
       </div>
 
       <div className="container mx-auto relative z-10">
-        <div 
+        {/* Header */}
+        <div
           ref={heading.ref}
-          className={`text-center mb-20 reveal ${heading.isVisible ? 'active reveal-fade-up' : ''}`}
+          className={`text-center mb-12 reveal ${heading.isVisible ? 'active reveal-fade-up' : ''}`}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
             <Server className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Enterprise Solutions</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground tracking-tight">
-            High-Scale <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Fintech Systems</span>
+            High-Scale{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
+              Fintech Systems
+            </span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Architecting robust, secure, and scalable financial infrastructure processing millions in transactions.
           </p>
         </div>
-        
+
+        {/* Stat cards */}
+        <motion.div
+          className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <StatCard value={500} label="K+/mo Transactions" suffix="K+" />
+          <StatCard value={99} label="% Success Rate" suffix="%" />
+          <StatCard value={200} label="ms Max Latency" suffix="ms" />
+        </motion.div>
+
+        {/* Marquee */}
+        <div className="relative overflow-hidden mb-14 py-3">
+          <div
+            className="flex gap-4 whitespace-nowrap"
+            style={{ animation: 'marquee 22s linear infinite' }}
+          >
+            {[...MARQUEE_PILLS, ...MARQUEE_PILLS].map((pill, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted-foreground font-medium flex-shrink-0"
+              >
+                {pill}
+              </span>
+            ))}
+          </div>
+          <div className="absolute left-0 inset-y-0 w-16 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+          <div className="absolute right-0 inset-y-0 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+        </div>
+
+        {/* Project cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {fintechProjects.map((project, index) => (
             <FintechProjectCard key={project.id} project={project} index={index} />
           ))}
         </div>
       </div>
+
+      <style>{`
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+      `}</style>
     </section>
   );
 };

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useSkills } from '@/hooks/usePortfolioData';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -225,9 +226,12 @@ const SkillCategoryCard = ({ category, index }: { category: SkillCategory; index
   );
 };
 
+const FILTERS = ['All', 'Languages', 'Frontend', 'Backend', 'Databases', 'Cloud & DevOps', 'APIs & Integration', 'Tools'];
+
 const Skills = () => {
   const heading = useScrollReveal();
   const { data: skillsData, isLoading } = useSkills();
+  const [activeFilter, setActiveFilter] = useState('All');
 
   const displayCategories: SkillCategory[] = skillsData && skillsData.length > 0
     ? skillsData.map((categoryData: any) => ({
@@ -242,20 +246,42 @@ const Skills = () => {
       }))
     : defaultCategories;
 
+  const filtered = activeFilter === 'All'
+    ? displayCategories
+    : displayCategories.filter((c) => c.title === activeFilter);
+
   return (
     <section id="skills" className="py-24 px-4 relative overflow-hidden">
-      {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="container mx-auto relative z-10">
-        <div ref={heading.ref} className={`text-center mb-16 reveal ${heading.isVisible ? 'active reveal-fade-up' : ''}`}>
+        <div ref={heading.ref} className={`text-center mb-10 reveal ${heading.isVisible ? 'active reveal-fade-up' : ''}`}>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Technical Skills</h2>
           <p className="text-lg md:text-xl text-muted-foreground">Technologies and tools I work with</p>
         </div>
-        
+
+        {/* Filter strip */}
+        <div className="flex flex-wrap gap-2 justify-center mb-10">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className="relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
+              style={{
+                color: activeFilter === f ? '#00D4FF' : undefined,
+                background: activeFilter === f ? 'rgba(0,212,255,0.1)' : 'rgba(255,255,255,0.04)',
+                border: activeFilter === f ? '1px solid rgba(0,212,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                boxShadow: activeFilter === f ? '0 0 12px rgba(0,212,255,0.25)' : 'none',
+              }}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {[1, 2, 3, 4].map((i) => (
@@ -276,11 +302,22 @@ const Skills = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {displayCategories.map((category, index) => (
-              <SkillCategoryCard key={category.title} category={category} index={index} />
-            ))}
-          </div>
+          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            <AnimatePresence mode="popLayout">
+              {filtered.map((category, index) => (
+                <motion.div
+                  key={category.title}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.25, delay: index * 0.04 }}
+                >
+                  <SkillCategoryCard category={category} index={index} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </section>
