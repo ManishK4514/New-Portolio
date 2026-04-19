@@ -182,9 +182,9 @@ const StatCard = ({ value, label, suffix = '' }: { value: number; label: string;
   const inView = useInView(ref, { once: true });
   const count = useCountUp(value, 1400, inView);
   return (
-    <div ref={ref} className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-      <div className="text-3xl font-bold text-primary">{Math.round(count)}{suffix}</div>
-      <div className="text-xs text-muted-foreground mt-1">{label}</div>
+    <div ref={ref} className="p-3 sm:p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-center">
+      <div className="text-xl sm:text-3xl font-bold text-primary leading-tight">{Math.round(count)}{suffix}</div>
+      <div className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-tight">{label}</div>
     </div>
   );
 };
@@ -221,7 +221,7 @@ const FintechProjects = () => {
 
         {/* Stat cards */}
         <motion.div
-          className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-10"
+          className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xs sm:max-w-lg mx-auto mb-10"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
